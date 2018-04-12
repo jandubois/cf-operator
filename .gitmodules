@@ -1,3 +1,6 @@
 [submodule "src/bosh-deployment"]
 	path = src/bosh-deployment
 	url = git@github.com:cloudfoundry/bosh-deployment
+[submodule "src/postgres-release"]
+	path = src/postgres-release
+	url = git@github.com:jandubois/postgres-release

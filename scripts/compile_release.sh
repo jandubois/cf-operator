@@ -5,15 +5,21 @@ function yq {
 }
 
 TOPLEVEL=$(git rev-parse --show-toplevel)
+POSTGRES_RELEASE="${TOPLEVEL}/src/postgres-release"
+
 WORKSPACE="${TOPLEVEL}/workspace"
 cd "${WORKSPACE}"
 
-# Create deployment manifest for postgres-release
-wget https://raw.githubusercontent.com/cloudfoundry/postgres-release/develop/templates/postgres.yml -O postgres.yml
-wget https://raw.githubusercontent.com/cloudfoundry/postgres-release/develop/templates/operations/set_properties.yml -O set_properties.yml
-# our cloud-config doesn't have "small" VMs nor predefined disk types
-cat <<EOF >> set_properties.yml
+RELEASE_TARBALL="${WORKSPACE}/postgress-release.tgz"
+bosh create-release --force --dir="${POSTGRES_RELEASE}" --tarball="${RELEASE_TARBALL}"
 
+source "${TOPLEVEL}/scripts/bosh-env.sh"
+bosh upload-release "${RELEASE_TARBALL}"
+
+# Create deployment manifest for postgres-release
+# our cloud-config doesn't have "small" VMs nor predefined disk types
+MANIFEST="${WORKSPACE}/manifest.yml"
+bosh int "${POSTGRES_RELEASE}/templates/postgres.yml" -o "${POSTGRES_RELEASE}/templates/operations/set_properties.yml" -o /dev/stdin <<EOF > "${MANIFEST}"
 - type: replace
   path: /instance_groups/name=postgres/vm_type
   value: default
@@ -25,17 +31,11 @@ cat <<EOF >> set_properties.yml
   path: /instance_groups/name=postgres/persistent_disk?
   value: 10240
 EOF
-bosh int postgres.yml -o set_properties.yml > manifest.yml
-
-source "${TOPLEVEL}/scripts/bosh-env.sh"
-
-# Deploy latest postgres-release and download compiled packages
-bosh upload-release https://bosh.io/d/github.com/cloudfoundry/postgres-release
 
 export BOSH_DEPLOYMENT=postgres
 
 PGADMIN_PASSWORD=changeme
-bosh deploy -n -v pgadmin_database_password=${PGADMIN_PASSWORD} manifest.yml
+bosh deploy -n -v pgadmin_database_password=${PGADMIN_PASSWORD} "${MANIFEST}"
 
 STEMCELL_OS=$(yq stemcell/stemcell.MF .operating_system)
 STEMCELL_VERSION=$(yq stemcell/stemcell.MF .version)

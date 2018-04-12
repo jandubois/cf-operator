@@ -63,7 +63,6 @@ RUN chown -R root:vcap /var/vcap
 ENTRYPOINT ["/entrypoint.sh"]
 EOF
 
-docker build -t ${RELEASE_NAME_AND_VERSION/\//:} docker
-
-# docker run -d --name pg --rm -p 5524:5524 postgres:28
-# PGUSER=pgadmin PGPASSWORD=changeme psql -h localhost -p 5524 postgres -c '\l'
+TAG=${RELEASE_NAME_AND_VERSION/\//:}
+# strip "+dev.nnn" from version
+docker build -t ${TAG%%+*} docker

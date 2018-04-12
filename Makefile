@@ -20,5 +20,5 @@ all: create-bosh-lite stemcell compile image
 test:
 	./scripts/test.sh
 
-clean: delete-env
+clean: delete-bosh-lite
 	rm -rf workspace/*
