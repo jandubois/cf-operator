@@ -5,7 +5,7 @@ function yq {
 }
 
 TOPLEVEL=$(git rev-parse --show-toplevel)
-POSTGRES_RELEASE="${TOPLEVEL}/src/postgres-release"
+POSTGRES_RELEASE="${TOPLEVEL}/src/github.com/cloudfoundry/postgres-release"
 
 WORKSPACE="${TOPLEVEL}/workspace"
 cd "${WORKSPACE}"
