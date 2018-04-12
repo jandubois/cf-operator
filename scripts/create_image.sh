@@ -1,22 +1,20 @@
-#!/bin/bash
-
-set -ex
+#!/bin/bash -ex
 
 function yq {
     ruby -rjson -ryaml -e "puts YAML.load_file(ARGV[0]).to_json" "$1" | jq -r "$2"
 }
 
 TOPLEVEL=$(git rev-parse --show-toplevel)
-cd "${TOPLEVEL}/workspace"
+WORKSPACE="${TOPLEVEL}/workspace"
+cd "${WORKSPACE}"
 
 # Import stemcell as docker image
 STEMCELL_NAME=$(yq stemcell/stemcell.MF .name)
 STEMCELL_OS=$(yq stemcell/stemcell.MF .operating_system)
 STEMCELL_VERSION=$(yq stemcell/stemcell.MF .version)
-export BOSH_CLIENT=admin
-export BOSH_CLIENT_SECRET=`bosh int {TOPLEVEL}/workspace/creds.yml --path /admin_password`
+
+source "${TOPLEVEL}/scripts/bosh-env.sh"
 export BOSH_DEPLOYMENT=postgres
-export BOSH_ENVIRONMENT=vbox
 
 RELEASE_NAME_AND_VERSION=$(bosh deployment --json | jq -r .Tables[0].Rows[0].release_s)
 
@@ -29,7 +27,6 @@ tar xfz ${COMPILED_RELEASE} -C release
 rm -rf docker/
 mkdir -p docker/vcap
 
-SOURCE=${HOME}/Dropbox/vbox
 DEPLOYMENT_MF=manifest-int.yml
 
 PGADMIN_PASSWORD=changeme
@@ -38,7 +35,7 @@ bosh int manifest.yml -v pgadmin_database_password=${PGADMIN_PASSWORD} > ${DEPLO
 for JOB in $(yq release/release.MF .jobs[].name); do
     mkdir -p docker/vcap/jobs-src/${JOB}
     tar xfz release/jobs/${JOB}.tgz -C docker/vcap/jobs-src/${JOB}
-    ruby ${SOURCE}/erb_expander.rb ${DEPLOYMENT_MF} docker/vcap ${JOB}
+    ruby ${TOPLEVEL}/scripts/erb_expander.rb ${DEPLOYMENT_MF} docker/vcap ${JOB}
 done
 
 for PACKAGE in $(yq release/release.MF .compiled_packages[].name); do
