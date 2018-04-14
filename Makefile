@@ -1,4 +1,4 @@
-.PHONY: create-bosh-lite delete-bosh-lite stemcell compile image all test clean
+.PHONY: create-bosh-lite delete-bosh-lite stemcell compile image all test pgats clean
 
 create-bosh-lite:
 	./scripts/bosh-lite.sh create-env
@@ -19,6 +19,9 @@ all: create-bosh-lite stemcell compile image
 
 test:
 	./scripts/test.sh
+
+pgats:
+	./scripts/pgats.sh
 
 clean: delete-bosh-lite
 	rm -rf workspace/*
