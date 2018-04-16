@@ -24,15 +24,10 @@ bosh int "${POSTGRES_RELEASE}/templates/postgres.yml" -o "${POSTGRES_RELEASE}/te
   path: /instance_groups/name=postgres/vm_type
   value: default
 
-- type: remove
-  path: /instance_groups/name=postgres/persistent_disk_type
-
 - type: replace
-  path: /instance_groups/name=postgres/persistent_disk?
-  value: 10240
+  path: /instance_groups/name=postgres/persistent_disk_type
+  value: default
 EOF
-
-export BOSH_DEPLOYMENT=postgres
 
 PGADMIN_PASSWORD=changeme
 bosh deploy -n -v pgadmin_database_password=${PGADMIN_PASSWORD} "${MANIFEST}"

@@ -14,7 +14,6 @@ STEMCELL_OS=$(yq stemcell/stemcell.MF .operating_system)
 STEMCELL_VERSION=$(yq stemcell/stemcell.MF .version)
 
 source "${TOPLEVEL}/scripts/bosh-env.sh"
-export BOSH_DEPLOYMENT=postgres
 
 RELEASE_NAME_AND_VERSION=$(bosh deployment --json | jq -r .Tables[0].Rows[0].release_s)
 
