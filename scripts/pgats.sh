@@ -6,12 +6,13 @@ WORKSPACE="${TOPLEVEL}/workspace"
 source "${TOPLEVEL}/scripts/bosh-env.sh"
 export PGATS_CONFIG="${WORKSPACE}/pgats.yml"
 
-function creds {
-    bosh int "${HOME}/.bosh/config" --path "/environments/alias=${BOSH_ENVIRONMENT}/$1"
+function ca_cert {
+    bosh int "$(git rev-parse --show-toplevel)/workspace/creds.yml" --path /director_ssl/ca
 }
 
-bosh int /dev/stdin -v target="$(creds url)" -v username="$(creds username)" -v password="$(creds password)" \
-         --var-file ca_cert=<(creds ca_cert) <<EOF > "${PGATS_CONFIG}"
+bosh int /dev/stdin -v target="${BOSH_ENVIRONMENT}" -v username="${BOSH_CLIENT}" -v password="${BOSH_CLIENT_SECRET}" \
+         -v versions="${TOPLEVEL}/src/github.com/cloudfoundry/postgres-release/versions.yml" \
+         --var-file ca_cert=<(ca_cert) <<EOF > "${PGATS_CONFIG}"
 ---
 bosh:
   target: ((target))
@@ -24,6 +25,7 @@ cloud_configs:
   - name: default
   default_persistent_disk_type: default
   default_vm_type: default
+versions_file: ((versions))
 EOF
 
-./src/github.com/cloudfoundry/postgres-release/src/acceptance-tests/scripts/test "$@"
+"${TOPLEVEL}/src/github.com/cloudfoundry/postgres-release/src/acceptance-tests/scripts/test" "$@"

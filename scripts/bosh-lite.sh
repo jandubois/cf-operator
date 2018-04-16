@@ -8,6 +8,7 @@ fi
 
 TOPLEVEL=$(git rev-parse --show-toplevel)
 WORKSPACE="${TOPLEVEL}/workspace"
+mkdir -p "${WORKSPACE}"
 
 if [[ "${CMD}" == "create-env" && -f "${WORKSPACE}/state.json" ]]; then
     echo "bosh-lite has already been set up"
@@ -31,10 +32,13 @@ bosh ${CMD} "${TOPLEVEL}/src/bosh-deployment/bosh.yml" \
   -v internal_cidr=192.168.50.0/24 \
   -v outbound_network_name=NatNetwork
 
-#export BOSH_CLIENT=admin
-#export BOSH_CLIENT_SECRET=`bosh int "{TOPLEVEL}/workspace/creds.yml" --path /admin_password`
 if [[ "${CMD}" == "create-env" ]]; then
+    CLOUDCONFIG="${WORKSPACE}/cloud-config.yml"
+    bosh int "${TOPLEVEL}/src/bosh-deployment/warden/cloud-config.yml"  -o /dev/stdin <<EOF > "${CLOUDCONFIG}"
+- type: replace
+  path: /disk_types/name=default/disk_size
+  value: 10240
+EOF
     source "${TOPLEVEL}/scripts/bosh-env.sh"
-    bosh alias-env ${BOSH_ENVIRONMENT} -e 192.168.50.6 --ca-cert <(bosh int "${TOPLEVEL}/workspace/creds.yml" --path /director_ssl/ca)
-    bosh update-cloud-config -n "${TOPLEVEL}/src/bosh-deployment/warden/cloud-config.yml"
+    bosh update-cloud-config -n "${CLOUDCONFIG}"
 fi
