@@ -19,7 +19,10 @@ bosh upload-release "${RELEASE_TARBALL}"
 # Create deployment manifest for postgres-release
 # our cloud-config doesn't have "small" VMs nor predefined disk types
 MANIFEST="${WORKSPACE}/manifest.yml"
-bosh int "${POSTGRES_RELEASE}/templates/postgres.yml" -o "${POSTGRES_RELEASE}/templates/operations/set_properties.yml" -o /dev/stdin <<EOF > "${MANIFEST}"
+bosh int "${POSTGRES_RELEASE}/templates/postgres.yml" \
+     -o "${POSTGRES_RELEASE}/templates/operations/set_properties.yml" \
+     -o "${POSTGRES_RELEASE}/templates/operations/use_ssl.yml" \
+     -o /dev/stdin <<EOF > "${MANIFEST}"
 - type: replace
   path: /instance_groups/name=postgres/vm_type
   value: default
@@ -30,7 +33,8 @@ bosh int "${POSTGRES_RELEASE}/templates/postgres.yml" -o "${POSTGRES_RELEASE}/te
 EOF
 
 PGADMIN_PASSWORD=changeme
-bosh deploy -n -v pgadmin_database_password=${PGADMIN_PASSWORD} "${MANIFEST}"
+bosh deploy "${MANIFEST}" -n -v pgadmin_database_password=${PGADMIN_PASSWORD} -v postgres_host_or_ip=10.244.0.2 \
+     --vars-store "${WORKSPACE}/deployment-vars.yml"
 
 STEMCELL_OS=$(yq stemcell/stemcell.MF .operating_system)
 STEMCELL_VERSION=$(yq stemcell/stemcell.MF .version)
