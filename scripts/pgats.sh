@@ -10,6 +10,11 @@ function ca_cert {
     bosh int "$(git rev-parse --show-toplevel)/workspace/creds.yml" --path /director_ssl/ca
 }
 
+if ! netstat -nrf inet | grep -q 10.244; then
+    echo "No route entries found for 10.244/16 subnet"
+    exit 1
+fi
+
 bosh int /dev/stdin -v target="${BOSH_ENVIRONMENT}" -v username="${BOSH_CLIENT}" -v password="${BOSH_CLIENT_SECRET}" \
          -v versions="${TOPLEVEL}/src/github.com/cloudfoundry/postgres-release/versions.yml" \
          --var-file ca_cert=<(ca_cert) <<EOF > "${PGATS_CONFIG}"
