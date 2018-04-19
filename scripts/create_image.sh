@@ -29,7 +29,12 @@ mkdir -p docker/vcap
 DEPLOYMENT_MF=manifest-int.yml
 
 PGADMIN_PASSWORD=changeme
-bosh int manifest.yml -v pgadmin_database_password=${PGADMIN_PASSWORD} > ${DEPLOYMENT_MF}
+bosh int <(perl -pe 's/(postgres_cert)\./$1_/' manifest.yml) \
+     -v pgadmin_database_password=${PGADMIN_PASSWORD} \
+     --var-file postgres_cert_ca=<(bosh int "${WORKSPACE}/deployment-vars.yml" --path /postgres_cert/ca) \
+     --var-file postgres_cert_certificate=<(bosh int "${WORKSPACE}/deployment-vars.yml" --path /postgres_cert/certificate) \
+     --var-file postgres_cert_private_key=<(bosh int "${WORKSPACE}/deployment-vars.yml" --path /postgres_cert/private_key) \
+     > ${DEPLOYMENT_MF}
 
 for JOB in $(yq release/release.MF .jobs[].name); do
     mkdir -p docker/vcap/jobs-src/${JOB}
