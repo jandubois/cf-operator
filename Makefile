@@ -10,10 +10,10 @@ stemcell:
 	./scripts/stemcell.sh
 
 compile:
-	./scripts/compile_release.sh
+	./scripts/compile-release.sh
 
 image:
-	./scripts/create_image.sh
+	./scripts/create-image.sh
 
 all: create-env stemcell compile image
 
