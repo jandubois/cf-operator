@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash -e
 
 TOPLEVEL=$(git rev-parse --show-toplevel)
 WORKSPACE="${TOPLEVEL}/workspace"
@@ -10,6 +10,7 @@ function ca_cert {
     bosh int "$(git rev-parse --show-toplevel)/workspace/creds.yml" --path /director_ssl/ca
 }
 
+shopt -s lastpipe
 if ! netstat -nrf inet | grep -q 10.244; then
     echo "No route entries found for 10.244/16 subnet"
     exit 1
