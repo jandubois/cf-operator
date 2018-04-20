@@ -17,7 +17,7 @@ bosh int "${TOPLEVEL}/src/bosh-deployment/bosh.yml" \
   -o "${TOPLEVEL}/src/bosh-deployment/credhub.yml" \
   -o /dev/stdin \
   --vars-store "${WORKSPACE}/creds.yml" \
-  -v director_name="Bosh Lite Director" \
+  -v director_name="Bosh-Lite-Director" \
   -v internal_ip=192.168.50.6 \
   -v internal_gw=192.168.50.1 \
   -v internal_cidr=192.168.50.0/24 \
