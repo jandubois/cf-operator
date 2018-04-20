@@ -1,4 +1,4 @@
-.PHONY: create-bosh-lite delete-bosh-lite stemcell compile image all test pgats clean
+.PHONY: create-bosh-lite delete-bosh-lite stemcell compile image all jumpbox test pgats clean
 
 create-env:
 	./scripts/create-env.sh
@@ -16,6 +16,9 @@ image:
 	./scripts/create-image.sh
 
 all: create-env stemcell compile image
+
+jumpbox:
+	./scripts/jumpbox.sh
 
 test:
 	./scripts/test.sh
