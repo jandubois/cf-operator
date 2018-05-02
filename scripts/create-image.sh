@@ -15,7 +15,7 @@ STEMCELL_VERSION=$(yq stemcell/stemcell.MF .version)
 
 source "${TOPLEVEL}/scripts/bosh-env.sh"
 
-RELEASE_NAME_AND_VERSION=$(bosh deployment --json | jq -r .Tables[0].Rows[0].release_s)
+RELEASE_NAME_AND_VERSION=$(bosh deployment --json | jq -r .Tables[0].Rows[0].release_s | grep postgres)
 
 COMPILED_RELEASE=$(ls -1t ${RELEASE_NAME_AND_VERSION/\//-}-$STEMCELL_OS-${STEMCELLVERSION}* | head -1)
 

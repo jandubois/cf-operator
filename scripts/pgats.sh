@@ -16,9 +16,15 @@ if ! netstat -nrf inet | grep -q 10.244; then
     exit 1
 fi
 
+TEMPLATE="../testing/templates/postgres_simple.yml"
+POSTSTOP=true
+if $(bosh deployment --json | jq -r .Tables[0].Rows[0].release_s | grep -q bpm); then
+    TEMPLATE="${TEMPLATE/postgres_simple/postgres_bpm}"
+    POSTSTOP=false
+fi
+
 bosh int /dev/stdin -v target="${BOSH_ENVIRONMENT}" -v username="${BOSH_CLIENT}" -v password="${BOSH_CLIENT_SECRET}" \
-         -v versions="${TOPLEVEL}/src/github.com/cloudfoundry/postgres-release/versions.yml" \
-         --var-file ca_cert=<(ca_cert) <<EOF > "${PGATS_CONFIG}"
+         -v template="${TEMPLATE}" -v poststop="${POSTSTOP}" --var-file ca_cert=<(ca_cert) <<EOF > "${PGATS_CONFIG}"
 ---
 bosh:
   target: ((target))
@@ -31,7 +37,8 @@ cloud_configs:
   - name: default
   default_persistent_disk_type: default
   default_vm_type: default
-versions_file: ((versions))
+manifest_template: ((template))
+test_post_stop_hook: ((poststop))
 EOF
 
 "${TOPLEVEL}/src/github.com/cloudfoundry/postgres-release/src/acceptance-tests/scripts/test" "$@"
